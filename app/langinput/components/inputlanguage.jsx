@@ -168,7 +168,11 @@ const Inputlanguage = () => {
         }
     };
 
-
+    if (loading === true) {
+        return (
+            <div>Loading....</div>
+        )
+    }
 
     return (
         <div className="p-6">
