@@ -12,26 +12,36 @@ const Inputlanguage = () => {
     const [firstRowLanguages, setFirstRowLanguages] = useState([]);
     const [loading, setLoading] = useState(true);
 
-        // useEffect(() => {
-        //     const fetchData = async () => {
-        //         try {
-        //             const response = await fetch("/api/load");
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch("/api/load");
 
-        //             if (response.ok) {
-        //                 const data = await response.json();
-        //                 console.log(data);
-        //                 setGrid(data.grid || [[{ id: uuidv4(), language: "English", value: "", translations: {} }]]);
-        //                 setFirstRowLanguages(data.firstRowLanguages || ["English"]);
-        //             }
-        //         } catch (error) {
-        //             console.error("Error fetching data:", error);
-        //         } finally {
-        //             setLoading(false);
-        //         }
-        //     };
-        
-        //     fetchData();
-        // }, []);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Fetched data:", data);
+
+                    // Ensure unique IDs when setting the grid
+                    const updatedGrid = data.grid.map(row =>
+                        row.map(field => ({ ...field, id: uuidv4() }))
+                    );
+
+                    setGrid(updatedGrid || [[{ id: uuidv4(), language: "English", value: "", translations: {} }]]);
+                    setFirstRowLanguages(data.firstRowLanguages || ["English"]);
+                } else {
+                    console.error("Failed to load data");
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
 
     const languages = ["English", "Spanish", "French", "Hindi", "Chinese", "Arabic"];
 

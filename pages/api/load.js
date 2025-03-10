@@ -23,32 +23,53 @@
 
 
 
-import pool from "./db.js";
+import mysql from 'mysql2/promise';
+import { v4 as uuidv4 } from 'uuid';
 
 export default async function handler(req, res) {
-    if (req.method === "GET") {
-        try {
-            const [translationRows] = await pool.query("SELECT * FROM translations");
-            const [languageRows] = await pool.query("SELECT * FROM first_row_languages");
+    if (req.method !== 'GET') {
+        return res.status(405).json({ message: 'Method Not Allowed' });
+    }
 
-            let grid = [];
-            let firstRowLanguages = [];
+    try {
+        const connection = await mysql.createConnection({
+            host: 'localhost',
+            user: 'root',
+            password: 'root',
+            database: 'multilingual_db',
+        });
 
-            // Populate firstRowLanguages from DB
-            languageRows.forEach(({ col_index, language }) => {
-                firstRowLanguages[col_index] = language;
-            });
+        // ✅ Get columns (languages)
+        const [columnsResult] = await connection.query(`
+            SELECT COLUMN_NAME 
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_NAME = 'translations' 
+            AND TABLE_SCHEMA = 'multilingual_db'
+        `);
 
-            // Populate grid from translations table
-            translationRows.forEach(({ id, row_index, col_index, language, value }) => {
-                if (!grid[row_index]) grid[row_index] = [];
-                grid[row_index][col_index] = { id, language, value };
-            });
+        const firstRowLanguages = columnsResult
+            .map(col => col.COLUMN_NAME)
+            .filter(col => col !== 'id' && col !== 'created_at');
 
-            res.status(200).json({ grid, firstRowLanguages });
-        } catch (error) {
-            console.error("Database error:", error);
-            res.status(500).json({ error: "Database error" });
-        }
+        // ✅ Get data
+        const [rows] = await connection.query(`SELECT * FROM translations`);
+
+        // ✅ Ensure each field has a unique ID
+        const grid = rows.map(row =>
+            firstRowLanguages.map(language => ({
+                id: uuidv4(), // Ensure unique ID
+                language,
+                value: row[language] || "",
+                translations: {}
+            }))
+        );
+
+        await connection.end();
+
+        res.status(200).json({ grid, firstRowLanguages });
+    } catch (error) {
+        console.error('❌ Error loading data:', error);
+        res.status(500).json({ message: 'Error loading data', error });
     }
 }
+
