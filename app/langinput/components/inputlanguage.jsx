@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import HashLoader from "react-spinners/HashLoader";
 
 const Inputlanguage = () => {
     const [grid, setGrid] = useState([
@@ -14,7 +15,7 @@ const Inputlanguage = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            setLoading(true);
+            // setLoading(true);
             try {
                 const response = await fetch("/api/load");
 
@@ -35,7 +36,7 @@ const Inputlanguage = () => {
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
-                setLoading(false);
+                // setLoading(false);
             }
         };
 
@@ -168,11 +169,25 @@ const Inputlanguage = () => {
         }
     };
 
-    if (loading === true) {
+    useEffect(() => {
+        console.log("Loading started...");
+        const timer = setTimeout(() => {
+            setLoading(false);
+            console.log("Loading finished!");
+            // setLoading(true);
+        }, 3000); // Wait for 1 second
+
+        return () => clearTimeout(timer); // Cleanup function
+    }, []);
+
+    if (loading) {
         return (
-            <div>Loading....</div>
-        )
+            <div className="flex justify-center items-center h-screen bg-gray-100">
+                <HashLoader color="#24775e" size={60} />
+            </div>
+        );
     }
+
 
     return (
         <div className="p-6">
