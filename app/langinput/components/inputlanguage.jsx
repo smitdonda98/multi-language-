@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import HashLoader from "react-spinners/HashLoader";
+import toast, { Toaster } from "react-hot-toast";
 
 const Inputlanguage = () => {
     const [grid, setGrid] = useState([
@@ -149,6 +150,7 @@ const Inputlanguage = () => {
             grid: values.grid,
             firstRowLanguages: values.firstRowLanguages,
         };
+
         try {
             const response = await fetch("/api/save", {
                 method: "POST",
@@ -159,13 +161,26 @@ const Inputlanguage = () => {
             });
 
             if (response.ok) {
-                alert("Data saved successfully!");
+                toast.success("Data saved successfully!", {
+                    position: "top-right",
+                    duration: 3000, // Auto-close after 3 seconds
+                    style: {
+                        borderRadius: "8px",
+                        background: "#4CAF50",
+                        color: "#fff",
+                        fontWeight: "bold",
+                    },
+                });
             } else {
-                alert("Failed to save data.");
+                toast.error("❌ Failed to save data.", {
+                    position: "top-right",
+                });
             }
         } catch (error) {
             console.error("Error submitting data:", error);
-            alert("An error occurred.");
+            toast.error("⚠️ An error occurred!", {
+                position: "top-right",
+            });
         }
     };
 
@@ -174,15 +189,15 @@ const Inputlanguage = () => {
         const timer = setTimeout(() => {
             setLoading(false);
             console.log("Loading finished!");
-        }, 3000); 
-        
+        }, 2000);
+
         return () => clearTimeout(timer);
     }, []);
 
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen bg-gray-100">
-                <HashLoader color="#24775e" size={60} />
+                <HashLoader speedMultiplier={2} color="#24775e" size={60} />
             </div>
         );
     }
@@ -190,7 +205,8 @@ const Inputlanguage = () => {
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Multilingual Input Fields</h1>
+            <Toaster />
+            <h1 className="text-2xl font-bold mb-4">MultiLanguage Input Fields</h1>
 
             <Formik
                 initialValues={{
@@ -203,64 +219,66 @@ const Inputlanguage = () => {
             >
                 {({ values, setFieldValue }) => (
                     <Form>
-                        <div className="space-y-4 overflow-auto">
-                            {values.grid.map((row, rowIdx) => (
-                                <div key={rowIdx} className="flex gap-4">
-                                    {row.map((field, colIdx) => (
-                                        <div key={field.id} className="flex flex-col space-y-2">
-                                            {rowIdx === 0 && (
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <select
-                                                        className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        value={field.language}
-                                                        onChange={(e) => {
-                                                            const newLanguage = e.target.value;
-                                                            handleLanguageChange(colIdx, newLanguage);
-                                                            const updatedLanguages = [...values.firstRowLanguages];
-                                                            updatedLanguages[colIdx] = newLanguage;
-                                                            setFieldValue("firstRowLanguages", updatedLanguages);
-                                                        }}
-                                                    >
-                                                        {languages.map((lang) => (
-                                                            <option key={lang} value={lang}>
-                                                                {lang}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleDeleteColumn(colIdx, setFieldValue, values)
-                                                        }
-                                                        className="p-2 bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            )}
+                        <div className="space-y-4 ">
+                            <div className="overflow-auto space-y-4">
+                                {values.grid.map((row, rowIdx) => (
+                                    <div key={rowIdx} className="flex gap-4">
+                                        {row.map((field, colIdx) => (
+                                            <div key={field.id} className="flex flex-col space-y-2">
+                                                {rowIdx === 0 && (
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <select
+                                                            className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            value={field.language}
+                                                            onChange={(e) => {
+                                                                const newLanguage = e.target.value;
+                                                                handleLanguageChange(colIdx, newLanguage);
+                                                                const updatedLanguages = [...values.firstRowLanguages];
+                                                                updatedLanguages[colIdx] = newLanguage;
+                                                                setFieldValue("firstRowLanguages", updatedLanguages);
+                                                            }}
+                                                        >
+                                                            {languages.map((lang) => (
+                                                                <option key={lang} value={lang}>
+                                                                    {lang}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleDeleteColumn(colIdx, setFieldValue, values)
+                                                            }
+                                                            className="p-2 bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                )}
 
-                                            <Field
-                                                name={`grid[${rowIdx}][${colIdx}].value`}
-                                                placeholder={`Type in ${field.language}...`}
-                                                className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                value={field.value}
-                                                onChange={(e) => {
-                                                    handleFieldChange(rowIdx, colIdx, e.target.value);
-                                                    setFieldValue(
-                                                        `grid[${rowIdx}][${colIdx}].value`,
-                                                        e.target.value
-                                                    );
-                                                }}
-                                            />
-                                            <ErrorMessage
-                                                name={`grid[${rowIdx}][${colIdx}].value`}
-                                                component="div"
-                                                className="text-red-500 text-sm"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
+                                                <Field
+                                                    name={`grid[${rowIdx}][${colIdx}].value`}
+                                                    placeholder={`Type in ${field.language}...`}
+                                                    className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    value={field.value}
+                                                    onChange={(e) => {
+                                                        handleFieldChange(rowIdx, colIdx, e.target.value);
+                                                        setFieldValue(
+                                                            `grid[${rowIdx}][${colIdx}].value`,
+                                                            e.target.value
+                                                        );
+                                                    }}
+                                                />
+                                                <ErrorMessage
+                                                    name={`grid[${rowIdx}][${colIdx}].value`}
+                                                    component="div"
+                                                    className="text-red-500 text-sm"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
 
                             <div className="flex gap-4">
                                 <button
