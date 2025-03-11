@@ -174,10 +174,9 @@ const Inputlanguage = () => {
         const timer = setTimeout(() => {
             setLoading(false);
             console.log("Loading finished!");
-            // setLoading(true);
-        }, 3000); // Wait for 1 second
-
-        return () => clearTimeout(timer); // Cleanup function
+        }, 3000); 
+        
+        return () => clearTimeout(timer);
     }, []);
 
     if (loading) {
