@@ -54,22 +54,30 @@ export default async function handler(req, res) {
         // ✅ Get data
         const [rows] = await connection.query(`SELECT * FROM translations`);
 
-        // ✅ Ensure each field has a unique ID
-        const grid = rows.map(row =>
-            firstRowLanguages.map(language => ({
-                id: uuidv4(), // Ensure unique ID
-                language,
-                value: row[language] || "",
-                translations: {}
-            }))
-        );
+        let grid;
+
+        if (rows.length === 0) {
+            console.log("⚠️ Database is empty. Returning default grid...");
+            grid = [[{ id: uuidv4(), language: "English", value: "", translations: {} }]];
+        } else {
+            // ✅ Ensure each field has a unique ID
+            grid = rows.map(row =>
+                firstRowLanguages.map(language => ({
+                    id: uuidv4(),
+                    language,
+                    value: row[language] || "",
+                    translations: {},
+                }))
+            );
+        }
 
         await connection.end();
 
-        res.status(200).json({ grid, firstRowLanguages });
+        res.status(200).json({ grid, firstRowLanguages: firstRowLanguages.length > 0 ? firstRowLanguages : ["English"] });
     } catch (error) {
         console.error('❌ Error loading data:', error);
         res.status(500).json({ message: 'Error loading data', error });
     }
 }
+
 

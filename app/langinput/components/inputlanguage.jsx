@@ -103,6 +103,14 @@ const Inputlanguage = () => {
     };
 
     const handleDeleteColumn = (colIdx, setFieldValue, values) => {
+        // Prevent deleting if it's the last column
+        if (values.firstRowLanguages.length <= 1) {
+            toast.error("You must have at least one column!", {
+                position: "top-right",
+            });
+            return;
+        }
+
         setGrid((prevGrid) =>
             prevGrid.map((row) => row.filter((_, cIdx) => cIdx !== colIdx))
         );
