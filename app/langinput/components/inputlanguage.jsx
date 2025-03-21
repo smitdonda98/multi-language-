@@ -60,6 +60,21 @@ const Inputlanguage = () => {
         );
     };
 
+    const handleDeleteRow = (rowIdx, setFieldValue, values) => {
+        if (values.grid.length <= 1) {
+            toast.error("You must have at least one row!", {
+                position: "top-right",
+            });
+            return;
+        }
+
+        const updatedGrid = values.grid.filter((_, rIdx) => rIdx !== rowIdx);
+
+        // Update Formik's state and local state
+        setFieldValue("grid", updatedGrid);
+        setGrid(updatedGrid);
+    };
+
     const handleAddToColumn = () => {
         setGrid((prevGrid) => {
             const columnWidth = prevGrid[0].length;
@@ -153,11 +168,8 @@ const Inputlanguage = () => {
             .required("Languages are required."),
     });
 
-    const handleSubmit = async (values) => {
-        const payload = {
-            grid: values.grid,
-            firstRowLanguages: values.firstRowLanguages,
-        };
+    const handleSubmit = async (grid, firstRowLanguages) => {
+        const payload = { grid, firstRowLanguages };
 
         try {
             const response = await fetch("/api/save", {
@@ -171,13 +183,7 @@ const Inputlanguage = () => {
             if (response.ok) {
                 toast.success("Data saved successfully!", {
                     position: "top-right",
-                    duration: 3000, // Auto-close after 3 seconds
-                    style: {
-                        borderRadius: "8px",
-                        background: "#4CAF50",
-                        color: "#fff",
-                        fontWeight: "bold",
-                    },
+                    duration: 3000,
                 });
             } else {
                 toast.error("❌ Failed to save data.", {
@@ -222,7 +228,7 @@ const Inputlanguage = () => {
                     firstRowLanguages: grid[0].map((field) => field.language),
                 }}
                 validationSchema={validationSchema}
-                onSubmit={handleSubmit}
+                onSubmit={(values) => handleSubmit(values.grid, values.firstRowLanguages)} // Pass latest grid
                 enableReinitialize
             >
                 {({ values, setFieldValue }) => (
@@ -230,7 +236,14 @@ const Inputlanguage = () => {
                         <div className="space-y-4 ">
                             <div className="overflow-auto space-y-4">
                                 {values.grid.map((row, rowIdx) => (
-                                    <div key={rowIdx} className="flex gap-4">
+                                    <div key={rowIdx} className="flex gap-4 items-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteRow(rowIdx, setFieldValue, values)}
+                                            className="min-w-fit p-2 h-fit bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        >
+                                            Delete Row
+                                        </button>
                                         {row.map((field, colIdx) => (
                                             <div key={field.id} className="flex flex-col space-y-2">
                                                 {rowIdx === 0 && (

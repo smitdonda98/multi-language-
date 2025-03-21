@@ -48,7 +48,7 @@ export default async function handler(req, res) {
             database: 'multilingual_db',
         });
 
-        // ✅ Ensure table exists with an id column
+        //  Ensure table exists
         await connection.query(`
             CREATE TABLE IF NOT EXISTS translations (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
             )
         `);
 
-        // ✅ Get existing columns
+        //  Fetch existing columns
         const [columnsResult] = await connection.query(`
             SELECT COLUMN_NAME 
             FROM INFORMATION_SCHEMA.COLUMNS 
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
             .map(col => col.COLUMN_NAME)
             .filter(col => col !== 'id' && col !== 'created_at');
 
-        // ✅ Add missing language columns
+        //  Add missing language columns
         for (const language of firstRowLanguages) {
             if (!existingColumns.includes(language)) {
                 await connection.query(`ALTER TABLE translations ADD COLUMN \`${language}\` VARCHAR(255)`);
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
             }
         }
 
-        // ✅ Remove deleted languages (columns)
+        //  Remove deleted language columns
         for (const column of existingColumns) {
             if (!firstRowLanguages.includes(column)) {
                 await connection.query(`ALTER TABLE translations DROP COLUMN \`${column}\``);
@@ -84,9 +84,23 @@ export default async function handler(req, res) {
             }
         }
 
-        // ✅ Insert or update each row
+        //  Get existing row IDs
+        const [existingRows] = await connection.query(`SELECT id FROM translations`);
+        const existingRowIds = existingRows.map(row => row.id);
+
+        //  Extract row IDs from submitted data
+        const submittedRowIds = grid.map((_, index) => index + 1); // Assuming index-based IDs
+        // If you have rowId from the frontend, use: const submittedRowIds = grid.map(row => row[0].rowId);
+
+        //  Find and delete missing rows
+        const rowsToDelete = existingRowIds.filter(id => !submittedRowIds.includes(id));
+        if (rowsToDelete.length > 0) {
+            await connection.query(`DELETE FROM translations WHERE id IN (${rowsToDelete.join(",")})`);
+            console.log(`❌ Deleted rows: ${rowsToDelete.join(", ")}`);
+        }
+
+        //  Insert or update each row
         for (const [index, row] of grid.entries()) {
-            // Assuming row is an array of objects with {language, value}
             const rowData = {};
             row.forEach(field => {
                 rowData[field.language] = field.value;
@@ -98,9 +112,7 @@ export default async function handler(req, res) {
                 `\`${lang}\` = '${rowData[lang].replace(/'/g, "''")}'`
             ).join(', ');
 
-            // If your grid data includes a unique rowId, use that instead of index + 1
-            const rowId = index + 1; // Simple approach using index as ID
-            // If you have a rowId in your data, replace with: const rowId = row[0].rowId;
+            const rowId = index + 1; // If using unique IDs from frontend, replace with row[0].rowId;
 
             const upsertQuery = `
                 INSERT INTO translations (id, ${languages.map(lang => `\`${lang}\``).join(', ')}) 
@@ -118,6 +130,7 @@ export default async function handler(req, res) {
         res.status(500).json({ message: 'Error saving data', error });
     }
 }
+    
 
 
 
