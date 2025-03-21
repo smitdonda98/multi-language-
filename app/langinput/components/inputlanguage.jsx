@@ -13,6 +13,7 @@ const Inputlanguage = () => {
     ]);
     const [firstRowLanguages, setFirstRowLanguages] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [languages, setLanguages] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -45,7 +46,31 @@ const Inputlanguage = () => {
     }, []);
 
 
-    const languages = ["English", "Spanish", "French", "Hindi", "Chinese", "Arabic"];
+    useEffect(() => {
+        const fetchLanguages = async () => {
+            try {
+                const response = await fetch("https://libretranslate.com/languages", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch languages");
+                }
+
+                const data = await response.json();
+                console.log("Languages fetched:", data);
+
+                // Transform the API response to extract language names
+                const languageList = data.map(lang => lang.name);
+                setLanguages(languageList);
+            } catch (error) {
+                console.error("Error fetching languages:", error);
+            }
+        };
+
+        fetchLanguages();
+    }, []);
 
     const translate = (text, targetLanguage) => {
         return text;
@@ -234,7 +259,7 @@ const Inputlanguage = () => {
                 {({ values, setFieldValue }) => (
                     <Form>
                         <div className="space-y-4 ">
-                            <div className="overflow-auto space-y-4">
+                            <div className="overflow-auto space-y-4 ">
                                 {values.grid.map((row, rowIdx) => (
                                     <div key={rowIdx} className="flex gap-4 items-end">
                                         <button
@@ -245,11 +270,11 @@ const Inputlanguage = () => {
                                             Delete Row
                                         </button>
                                         {row.map((field, colIdx) => (
-                                            <div key={field.id} className="flex flex-col space-y-2">
+                                            <div key={field.id} className="flex flex-col space-y-2 overflow-y-auto min-w-64">
                                                 {rowIdx === 0 && (
                                                     <div className="flex items-center justify-between gap-2">
                                                         <select
-                                                            className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            className="w-40 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                             value={field.language}
                                                             onChange={(e) => {
                                                                 const newLanguage = e.target.value;
