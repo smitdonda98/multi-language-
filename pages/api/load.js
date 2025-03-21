@@ -39,7 +39,7 @@ export default async function handler(req, res) {
             database: 'multilingual_db',
         });
 
-        // ✅ Get columns (languages)
+        
         const [columnsResult] = await connection.query(`
             SELECT COLUMN_NAME 
             FROM INFORMATION_SCHEMA.COLUMNS 
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
             .map(col => col.COLUMN_NAME)
             .filter(col => col !== 'id' && col !== 'created_at');
 
-        // ✅ Get data
+        
         const [rows] = await connection.query(`SELECT * FROM translations`);
 
         let grid;
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
             console.log("⚠️ Database is empty. Returning default grid...");
             grid = [[{ id: uuidv4(), language: "English", value: "", translations: {} }]];
         } else {
-            // ✅ Ensure each field has a unique ID
+            // 
             grid = rows.map(row =>
                 firstRowLanguages.map(language => ({
                     id: uuidv4(),

@@ -17,7 +17,7 @@ const Inputlanguage = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            // setLoading(true);
+
             try {
                 const response = await fetch("/api/load");
 
@@ -25,7 +25,7 @@ const Inputlanguage = () => {
                     const data = await response.json();
                     console.log("Fetched data:", data);
 
-                    // Ensure unique IDs when setting the grid
+
                     const updatedGrid = data.grid.map(row =>
                         row.map(field => ({ ...field, id: uuidv4() }))
                     );
@@ -38,7 +38,7 @@ const Inputlanguage = () => {
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
-                // setLoading(false);
+
             }
         };
 
@@ -61,7 +61,7 @@ const Inputlanguage = () => {
                 const data = await response.json();
                 console.log("Languages fetched:", data);
 
-                // Transform the API response to extract language names
+
                 const languageList = data.map(lang => lang.name);
                 setLanguages(languageList);
             } catch (error) {
@@ -95,7 +95,7 @@ const Inputlanguage = () => {
 
         const updatedGrid = values.grid.filter((_, rIdx) => rIdx !== rowIdx);
 
-        // Update Formik's state and local state
+
         setFieldValue("grid", updatedGrid);
         setGrid(updatedGrid);
     };
@@ -143,7 +143,7 @@ const Inputlanguage = () => {
     };
 
     const handleDeleteColumn = (colIdx, setFieldValue, values) => {
-        // Prevent deleting if it's the last column
+
         if (values.firstRowLanguages.length <= 1) {
             toast.error("You must have at least one column!", {
                 position: "top-right",
@@ -253,7 +253,7 @@ const Inputlanguage = () => {
                     firstRowLanguages: grid[0].map((field) => field.language),
                 }}
                 validationSchema={validationSchema}
-                onSubmit={(values) => handleSubmit(values.grid, values.firstRowLanguages)} // Pass latest grid
+                onSubmit={(values) => handleSubmit(values.grid, values.firstRowLanguages)}
                 enableReinitialize
             >
                 {({ values, setFieldValue }) => (
