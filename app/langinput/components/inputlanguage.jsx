@@ -6,6 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import HashLoader from "react-spinners/HashLoader";
 import toast, { Toaster } from "react-hot-toast";
+import { SunIcon, MoonIcon } from "@heroicons/react/24/solid";
 
 const Inputlanguage = () => {
     const [grid, setGrid] = useState([
@@ -14,6 +15,7 @@ const Inputlanguage = () => {
     const [firstRowLanguages, setFirstRowLanguages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [languages, setLanguages] = useState([]);
+    const [darkMode, setDarkMode] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -243,9 +245,15 @@ const Inputlanguage = () => {
 
 
     return (
-        <div className="p-6">
+        <div className={`p-6 min-h-screen ${darkMode ? "bg-gray-900 text-black" : "bg-white text-black"}`}>
             <Toaster />
-            <h1 className="text-2xl font-bold mb-4">MultiLanguage Input Fields</h1>
+            <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-2 mb-4 bg-gray-700 text-white rounded-full shadow-sm flex items-center justify-center w-12 h-12 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+                {darkMode ? <SunIcon className="w-6 h-6 text-yellow-400" /> : <MoonIcon className="w-6 h-6 text-gray-300" />}
+            </button>
+            <h1 className={`text-2xl font-bold mb-4 ${darkMode ? "bg-gray-900 text-white" : "bg-white text-black"}`}>MultiLanguage Input Fields</h1>
 
             <Formik
                 initialValues={{
